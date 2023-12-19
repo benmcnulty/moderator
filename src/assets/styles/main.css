@@ -1,0 +1,269 @@
+/* Define CSS custom properties for color themes and shared values */
+:root {
+  /* Primary color scheme (currently green) */
+  --primary-light: #66bb6a;
+  --primary-main: #4caf50;
+  --primary-dark: #388e3c;
+
+  /* Neutral color scheme (grays) */
+  --neutral-lightest: #f9f9f9;
+  --neutral-light: #f2f2f2;
+  --neutral-main: #ddd;
+  --neutral-dark: #333;
+
+  /* Background color for dark mode */
+  --background-dark: #2a2a2a;
+
+  /* Other shared values */
+  --box-shadow-light: 0px 0px 10px rgba(0, 0, 0, 0.1);
+  --box-shadow-heavy: 0 6px 8px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: var(--background-dark);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+main {
+  width: 96%;
+  max-width: 60rem;
+  margin: 1.5rem auto 1rem;
+  padding: 1rem;
+  background-color: var(--neutral-lightest);
+  border-radius: 0.5rem;
+  box-shadow: var(--box-shadow-light);
+  box-sizing: border-box;
+  overflow-x: auto;
+}
+
+header,
+footer {
+  width: 96%;
+  max-width: 60rem;
+}
+
+h1,
+h2,
+h3 {
+  text-align: center;
+  margin: 0.5rem 0;
+}
+
+/* Enhanced h1 styling with detailed gradient, refined glow, and edge contrast */
+h1 {
+  line-height: 1;
+  margin-top: 1.5rem;
+  font-size: 3rem;
+  letter-spacing: 0.25rem;
+  text-transform: uppercase;
+  font-weight: 900;
+  background-image: linear-gradient(to right,
+      var(--primary-light),
+      var(--neutral-light),
+      var(--primary-main),
+      var(--neutral-light),
+      var(--primary-dark));
+  -webkit-background-clip: text;
+  /* Chrome and Safari compatibility */
+  background-clip: text;
+  color: transparent;
+}
+
+form {
+  width: 100%;
+  margin: 0.5rem auto;
+  padding: 0.5rem 0;
+  display: block;
+}
+
+#userText {
+  width: 100%;
+  padding: 1rem;
+  border: 0.125rem solid var(--primary-main);
+  border-radius: 0.25rem;
+  font-size: 1rem;
+  background: linear-gradient(135deg,
+      var(--neutral-lightest),
+      var(--neutral-light));
+  box-shadow: inset 0px 0px 0.3125rem rgba(0, 0, 0, 0.1),
+    0 4px 6px rgba(0, 0, 0, 0.05);
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+#userText:focus {
+  border-color: var(--primary-dark);
+  box-shadow: inset 0px 0px 0.3125rem rgba(0, 0, 0, 0.1),
+    0 6px 8px rgba(0, 0, 0, 0.08);
+}
+
+input[type="submit"] {
+  display: block;
+  width: 80%;
+  margin-left: 10%;
+  margin-right: 10%;
+  margin-top: 0.5rem;
+  padding: 0.625rem;
+  border: none;
+  border-radius: 0.25rem;
+  background: linear-gradient(135deg,
+      var(--primary-light),
+      var(--primary-dark));
+  color: #fff;
+  cursor: pointer;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: var(--box-shadow-light);
+  transition: all 0.3s;
+}
+
+input[type="submit"]:hover {
+  background: linear-gradient(135deg, var(--primary-main), var(--primary-dark));
+  box-shadow: var(--box-shadow-heavy);
+  transform: translateY(-2px);
+}
+
+input[type="submit"]:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.5rem 0;
+  overflow: hidden;
+}
+
+table,
+th,
+td {
+  border: 0.0625rem solid var(--neutral-main);
+}
+
+th,
+td {
+  padding: 0.625rem;
+  text-align: center;
+}
+
+th {
+  background-color: var(--neutral-light);
+}
+
+tr:hover {
+  background-color: var(--neutral-lightest);
+}
+
+#overallResultsTable {
+  margin-bottom: 1rem;
+  border: 0.125rem solid var(--neutral-dark);
+  background-color: var(--neutral-lightest);
+}
+
+#detailedResultsTable th,
+#detailedResultsTable td {
+  border: 0.0625rem solid var(--neutral-light);
+}
+
+h4 {
+  margin-top: 1rem;
+  margin-bottom: 0.9375rem;
+  font-weight: bold;
+  text-align: center;
+}
+
+.checkmark {
+  background: url("../images/checkmark.svg");
+}
+
+.cross {
+  background: url("../images/cross.svg");
+}
+
+.checkmark,
+.cross {
+  width: 2rem;
+  height: 2rem;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  display: inline-block;
+  margin: 0 auto;
+  vertical-align: middle;
+}
+
+footer {
+  margin: 1rem 0;
+  text-align: center;
+}
+
+footer p {
+  margin-bottom: 0.625rem;
+  background-image: linear-gradient(to right,
+      var(--primary-light),
+      var(--primary-dark));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Handling smaller screen sizes */
+@media (max-width: 768px) {
+  main {
+    padding: 1rem 1rem 0.5rem;
+  }
+}
+
+/* For the Overall Results table */
+#overallResultsTable th:nth-child(1),
+#overallResultsTable td:nth-child(1) {
+  width: 10%;
+}
+
+#overallResultsTable th:nth-child(2),
+#overallResultsTable td:nth-child(2) {
+  width: 60%;
+}
+
+#overallResultsTable th:nth-child(3),
+#overallResultsTable td:nth-child(3) {
+  width: 30%;
+}
+
+/* For the Detailed Results table */
+#detailedResultsTable th:nth-child(1),
+#detailedResultsTable td:nth-child(1) {
+  width: 10%;
+}
+
+#detailedResultsTable th:nth-child(2),
+#detailedResultsTable td:nth-child(2) {
+  width: 60%;
+}
+
+#detailedResultsTable th:nth-child(3),
+#detailedResultsTable td:nth-child(3) {
+  width: 30%;
+}

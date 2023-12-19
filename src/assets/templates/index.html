@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Promptfolio Moderator Demo- OpenAI Content Filter Test</title>
+</head>
+
+<body>
+  <header>
+    <h1>Moderator</h1>
+  </header>
+  <main>
+    <h2>OpenAI Content Filter Test</h2>
+    <h3>Enter Text to Check Safety</h3>
+    <form id="filterForm">
+      <textarea id="userText" rows="2" cols="50" placeholder="Enter your text here..."></textarea>
+      <br />
+      <input type="submit" value="Check Content" />
+    </form>
+    <table id="overallResultsTable">
+      <thead>
+        <tr>
+          <th colspan="3">Overall Results</th>
+        </tr>
+      </thead>
+      <tbody id="overallResultBody"></tbody>
+    </table>
+
+    <h4>Detailed Results</h4>
+
+    <table id="detailedResultsTable">
+      <thead>
+        <tr>
+          <th>Status</th>
+          <th>Category</th>
+          <th>Score</th>
+        </tr>
+      </thead>
+      <tbody id="detailedResultBody"></tbody>
+    </table>
+  </main>
+  <footer>
+    <p>&copy;2023 Ben McNulty</p>
+  </footer>
+</body>
+
+</html>
