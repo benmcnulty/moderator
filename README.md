@@ -1,101 +1,60 @@
 # Moderator
 
-**Promptfolio** is Ben McNulty's cutting-edge AI Prompt Engineering Portfolio. Collaboratively built using a combination of human intelligence and a diverse team of AI agents, this portfolio showcases the state-of-the-art in AI-human collaboration, focusing on software development, design, writing, testing, and more.
+A small text-moderation demo with a Webpack frontend and an Express API. It demonstrates server-side provider credentials, response validation, and explicit failure states. This is an educational application with a legacy dependency set, not a production moderation service.
 
-## Objective
+The browser submits text to `POST /api/filter-content` on the local API. The server calls OpenAI's moderation endpoint and returns a validated result containing `flagged`, `categories`, and `category_scores`. The interface shows **Flagged** or **Not flagged** only for valid responses. HTTP errors, invalid JSON, missing fields, and network failures show **Moderation unavailable** and retain the text for retry.
 
-The goal of this demo is to rate the safety of text using AI and showcase the capabilities of the OpenAI API.
+## Run locally
 
-## Project Structure
+Prerequisites: Node.js and npm. The repair was checked on Node 24.21.0 on Windows 11. A provider API key is needed only for live requests; deterministic tests use injected responses and do not contact OpenAI.
 
-- **Framework**: Node-based web development
-- **Deployment**: Static HTML, CSS, and JavaScript
-- **Documentation**: Standards-compliant Markdown
-- **Version Control**: GitHub (with repo named "promptfolio")
-- **IDE**: VS Code (with GitHub Copilot for assistance)
-
-## Getting Started
-
-1. Clone the repository:
-
-   ```bash
-   git clone https://github.com/benmcnulty/moderator.git
-   ```
-
-2. Navigate to the project directory and install dependencies:
-
-   ```bash
-   cd moderator
-   npm install
-   ```
-
-3. For local static development:
-
-   ```bash
-   npm run watch
-   ```
-
-   This will watch for changes in your source files and bundle them accordingly.
-
-4. To start the local development server:
-
-   ```bash
-   npm start
-   ```
-
-   The server will run on `http://localhost:3000/`.
-
-5. To run the local development server while watching for changes in a functional local demo:
-
-   ```bash
-   npm run dev
-   ```
-
-   This will watch for changes in your source files and bundle them accordingly while the development server runs on `http://localhost:3100/`.
-
-6. To build for production:
-
-   ```bash
-   npm run build
-   ```
-
-   This will bundle the assets into the `/dist` directory in production mode.
-
-## Asset Management
-
-Images, styles, templates, and other static assets should be placed in the `src/assets` directory. Webpack is configured to process these assets:
-
-- Images smaller than 8KB are embedded directly into the final bundle as base64 for performance optimization.
-- Larger images are output to the `dist/images` directory.
-
-When incorporating images in the code, ensure they are required or imported to let webpack process them:
-
-```javascript
-import myImage from "./path/to/image.jpg";
+```sh
+git clone https://github.com/benmcnulty/moderator.git
+cd moderator
+npm ci --ignore-scripts
+npm run build
+npm start
 ```
 
-or
+Open `http://localhost:3000/`. The server binds to loopback. `--ignore-scripts` avoids the historical browser-driver installers; the current deterministic test suite does not need those drivers.
 
-```javascript
-const myImage = require("./path/to/image.png");
+For a live local request, create an ignored `.env` file:
+
+```dotenv
+OPENAI_API_KEY=<your-server-side-key>
 ```
 
-## Connecting to the OpenAI API
+Keep this value on the server. Do not place it in browser code, a Webpack definition, or a public file. `LOCALHOST_KEY` and `LOCALHOST_CERT` can point to local TLS files; when both are configured, use HTTPS on port 3000. Without them, the API and development server use HTTP.
 
-If you wish to connect to the OpenAI API when building this project locally, you'll need to provide your own API key. This ensures that developers can test and utilize OpenAI functionalities seamlessly in their local development environment.
+For frontend development, `npm run dev` runs the API on port 3000 and Webpack on port 3100. Open the development page on port 3100 using the same HTTP/HTTPS protocol as the API. `npm run watch` alone starts only the frontend; it still needs the API running separately.
 
-1. Obtain your OpenAI API key from the [OpenAI Dashboard](https://platform.openai.com/signup).
-2. In the root directory of the project, create a `.env` file.
-3. Inside the `.env` file, add your API key as follows:
+## Inspect and verify
 
-```makefile
-OPENAI_API_KEY=your_openai_api_key_here
+| File | Responsibility |
+| --- | --- |
+| `server.js` | Express app factory, input validation, server-side provider call, startup |
+| `src/moderation-result.js` | Shared response-shape and numeric-score validation |
+| `src/index.js` | Form submission, category rendering, unavailable state |
+| `src/assets/templates/index.html` | Form and live result table |
+| `test/server.test.js` | Injected provider contract tests; importing the server does not open a listening port |
+| `test/frontend.test.js` | Deterministic HTTP/JSON/network failure and rendering regressions using a minimal DOM boundary |
+
+```sh
+npm test
+npm run build
 ```
 
-Replace `your_openai_api_key_here` with your actual OpenAI API key.
+These tests cover logic and request contracts. They do not establish browser layout, accessibility conformance, or live-provider availability. Build output is written to `dist/`; building does not publish it.
 
-Note: The `.env` file is not committed to the repository to ensure the security of your API key.
+## Limits and contributions
 
-## Testing
+- **Not flagged is not a safety guarantee.** Category scores and their displayed mean are model outputs, not a calibrated probability that content is safe. A product needs its own review policy and evaluation data.
+- Text submitted in a live session is sent to the external provider. The demo has no authentication, abuse controls, quotas, persistent audit trail, or deployment hardening. Keep it local.
+- The dependency and browser tooling originated in 2023. No broad dependency upgrade is included in this repair.
+- No current hosted demo is claimed. Historical `deploy` scripts are not part of local validation.
 
-All code should be tested before pushing to ensure it's error-free. If possible, write unit tests for new functionality. The website should be tested for functionality and design coherence.
+Contributions should use a focused branch, add deterministic regression coverage for behavior changes, and run the tests and build. Preserve the response fields and display an explicit unavailable state for every failure.
+
+## License
+
+[MIT](LICENSE). This is a separate moderation demo; it is not the Promptfolio catalog application.
