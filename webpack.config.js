@@ -40,17 +40,17 @@ module.exports = {
   },
   devServer: {
     static: path.join(__dirname, "dist"),
-    host: "0.0.0.0",
+    host: "127.0.0.1",
     port: 3100,
     open: false,
     hot: true,
-    server: {
+    server: key && cert ? {
       type: "https",
       options: {
         key: key,
         cert: cert,
       },
-    },
+    } : "http",
     historyApiFallback: true,
   },
   plugins: [

@@ -1,15 +1,18 @@
 import "./assets/styles/main.css";
-
-console.log("Welcome to Promptfolio 0.0.1!");
+import { validateModerationResult } from "./moderation-result";
 
 const form = document.getElementById("filterForm");
 const userTextArea = document.getElementById("userText");
 const overallResultBody = document.getElementById("overallResultBody");
 const detailedResultBody = document.getElementById("detailedResultBody");
+let requestGeneration = 0;
 
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
   const text = userTextArea.value;
+  const generation = ++requestGeneration;
+  overallResultBody.textContent = "";
+  detailedResultBody.textContent = "";
 
   try {
     const baseURL = `${window.location.protocol}//${window.location.hostname}:3000`;
@@ -21,12 +24,17 @@ form.addEventListener("submit", async (e) => {
       body: JSON.stringify({ text }),
     });
 
-    const data = await response.json();
+    if (!response.ok) {
+      throw new Error("Moderation service unavailable");
+    }
+    const data = validateModerationResult(await response.json());
+    if (generation !== requestGeneration) return;
 
     // Calculate the average score across all categories
     let totalScore = 0;
     let numberOfCategories = 0;
     for (const category in data.category_scores) {
+      if (data.categories[category] === null) continue;
       totalScore += data.category_scores[category];
       numberOfCategories += 1;
     }
@@ -42,7 +50,9 @@ form.addEventListener("submit", async (e) => {
     const overallFlagged = document.createElement("td");
     const overallScore = document.createElement("td");
 
-    overallFlagged.textContent = data.flagged ? "Unsafe" : "Safe";
+    const partialCoverage = Object.values(data.categories).some((value) => value === null);
+    overallFlagged.textContent = data.flagged ? "Flagged" :
+      partialCoverage ? "Not flagged (partial coverage)" : "Not flagged";
 
     if (data.flagged) {
       const crossDiv = document.createElement("div");
@@ -66,7 +76,9 @@ form.addEventListener("submit", async (e) => {
       const row = document.createElement("tr");
 
       const statusTd = document.createElement("td");
-      if (data.categories[category]) {
+      if (data.categories[category] === null) {
+        statusTd.textContent = "Not assessed";
+      } else if (data.categories[category]) {
         const crossDiv = document.createElement("div");
         crossDiv.classList.add("cross");
         statusTd.appendChild(crossDiv);
@@ -82,7 +94,7 @@ form.addEventListener("submit", async (e) => {
       row.appendChild(categoryNameTd);
 
       const scoreTd = document.createElement("td");
-      scoreTd.textContent = `${(data.category_scores[category] * 100).toFixed(
+      scoreTd.textContent = data.categories[category] === null ? "Not assessed" : `${(data.category_scores[category] * 100).toFixed(
         4
       )}%`;
       row.appendChild(scoreTd);
@@ -91,10 +103,15 @@ form.addEventListener("submit", async (e) => {
     }
 
     // Reset the textarea for the next input
-    userTextArea.value = "";
+    if (userTextArea.value === text) userTextArea.value = "";
   } catch (error) {
-    console.error("Error with OpenAI request:", error);
-    overallResultBody.innerHTML = `<tr><td colspan="3">Failed to retrieve data from OpenAI</td></tr>`;
-    detailedResultBody.innerHTML = "";
+    if (generation !== requestGeneration) return;
+    const row = document.createElement("tr");
+    const cell = document.createElement("td");
+    cell.colSpan = 3;
+    cell.textContent = "Moderation unavailable. No safety result was returned. Try again.";
+    row.appendChild(cell);
+    overallResultBody.replaceChildren(row);
+    detailedResultBody.textContent = "";
   }
 });
