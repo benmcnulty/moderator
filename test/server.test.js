@@ -1,7 +1,8 @@
 const request = require("supertest");
 const { expect } = require("chai");
 const { createApp } = require("../server");
-const result = { flagged: false, categories: { violence: false }, category_scores: { violence: 0.01 } };
+const { providerFixture } = require("./fixtures/moderation");
+const result = providerFixture().results[0];
 
 describe("moderation API contract", () => {
   it("returns a validated result without a live provider call", async () => {

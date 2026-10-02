@@ -5,12 +5,12 @@ const axios = require("axios");
 const cors = require("cors");
 const https = require("https");
 const fs = require("fs");
-const { validateModerationResult } = require("./src/moderation-result");
+const { validateModerationResult, extractModerationResult } = require("./src/moderation-result");
 
 async function requestModeration(userText) {
   const response = await axios.post(
     "https://api.openai.com/v1/moderations",
-    { input: userText },
+    { input: userText, model: "omni-moderation-latest" },
     {
       headers: {
         Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
@@ -19,7 +19,7 @@ async function requestModeration(userText) {
       timeout: 15000,
     }
   );
-  return response.data.results?.[0];
+  return extractModerationResult(response.data);
 }
 
 function createApp({ moderate = requestModeration } = {}) {

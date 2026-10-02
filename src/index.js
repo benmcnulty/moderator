@@ -34,6 +34,7 @@ form.addEventListener("submit", async (e) => {
     let totalScore = 0;
     let numberOfCategories = 0;
     for (const category in data.category_scores) {
+      if (data.categories[category] === null) continue;
       totalScore += data.category_scores[category];
       numberOfCategories += 1;
     }
@@ -49,7 +50,9 @@ form.addEventListener("submit", async (e) => {
     const overallFlagged = document.createElement("td");
     const overallScore = document.createElement("td");
 
-    overallFlagged.textContent = data.flagged ? "Flagged" : "Not flagged";
+    const partialCoverage = Object.values(data.categories).some((value) => value === null);
+    overallFlagged.textContent = data.flagged ? "Flagged" :
+      partialCoverage ? "Not flagged (partial coverage)" : "Not flagged";
 
     if (data.flagged) {
       const crossDiv = document.createElement("div");
@@ -73,7 +76,9 @@ form.addEventListener("submit", async (e) => {
       const row = document.createElement("tr");
 
       const statusTd = document.createElement("td");
-      if (data.categories[category]) {
+      if (data.categories[category] === null) {
+        statusTd.textContent = "Not assessed";
+      } else if (data.categories[category]) {
         const crossDiv = document.createElement("div");
         crossDiv.classList.add("cross");
         statusTd.appendChild(crossDiv);
@@ -89,7 +94,7 @@ form.addEventListener("submit", async (e) => {
       row.appendChild(categoryNameTd);
 
       const scoreTd = document.createElement("td");
-      scoreTd.textContent = `${(data.category_scores[category] * 100).toFixed(
+      scoreTd.textContent = data.categories[category] === null ? "Not assessed" : `${(data.category_scores[category] * 100).toFixed(
         4
       )}%`;
       row.appendChild(scoreTd);

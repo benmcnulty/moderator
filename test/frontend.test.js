@@ -3,6 +3,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const vm = require("node:vm");
 const { validateModerationResult } = require("../src/moderation-result");
+const { providerFixture } = require("./fixtures/moderation");
 
 // Minimal DOM boundary: deterministic request/render checks, not browser layout QA.
 function element() {
@@ -40,9 +41,7 @@ function deferred() {
   const promise = new Promise((ok, fail) => { resolve = ok; reject = fail; });
   return { promise, resolve, reject };
 }
-const validResponse = { ok: true, json: async () => ({
-  flagged: false, categories: { violence: false }, category_scores: { violence: 0.1 },
-}) };
+const validResponse = { ok: true, json: async () => providerFixture().results[0] };
 const submitEvent = { preventDefault() {} };
 describe("moderation request and rendered status", () => {
   it("does not let an older success overwrite a newer failure or clear its input", async () => {
@@ -87,14 +86,24 @@ describe("moderation request and rendered status", () => {
 
   for (const flagged of [true, false]) {
     it(`renders validated ${flagged ? "flagged" : "unflagged"} results`, async () => {
-      const nodes = await submit({ ok: true, json: async () => ({
-        flagged, categories: { violence: flagged }, category_scores: { violence: 0.25 },
-      }) });
+      const nodes = await submit({ ok: true, json: async () => providerFixture({ flagged }).results[0] });
       assert.match(nodes.overallResultBody.textContent, flagged ? /Flagged/ : /Not flagged/);
       assert.match(nodes.detailedResultBody.textContent, /violence.*25\.0000%/);
       assert.equal(nodes.userText.value, "");
     });
   }
+  it("shows nullable categories as not assessed and marks partial coverage", async () => {
+    const nodes = await submit({ ok: true, json: async () => providerFixture({ nullable: true }).results[0] });
+    assert.match(nodes.overallResultBody.textContent, /Not flagged \(partial coverage\)/);
+    assert.match(nodes.detailedResultBody.textContent, /Not assessed illicit Not assessed/);
+    assert.match(nodes.detailedResultBody.textContent, /Not assessed illicit\/violent Not assessed/);
+  });
+  it("does not display inconsistent flags as an unflagged result", async () => {
+    const result = providerFixture({ flagged: true }).results[0];
+    result.flagged = false;
+    const nodes = await submit({ ok: true, json: async () => result });
+    assert.match(nodes.overallResultBody.textContent, /Moderation unavailable/);
+  });
   for (const data of [
     { error: "Provider error" }, { flagged: false },
     { flagged: false, categories: {}, category_scores: {} },

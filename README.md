@@ -4,6 +4,10 @@ A small text-moderation demo with a Webpack frontend and an Express API. It demo
 
 The browser submits text to `POST /api/filter-content` on the local API. The server calls OpenAI's moderation endpoint and returns a validated result containing `flagged`, `categories`, and `category_scores`. The interface shows **Flagged** or **Not flagged** only for valid responses. HTTP errors, invalid JSON, missing fields, and network failures show **Moderation unavailable** and retain the text for retry.
 
+The server explicitly requests `omni-moderation-latest` for a single text input. Its consumed contract requires all 13 documented category flags and numeric scores, with `null` accepted only for `illicit` and `illicit/violent`. Null means **Not assessed**; the UI marks partial coverage and excludes those categories from its displayed score mean. Aggregate flags must agree with assessed categories. This contract was checked against the [official moderation reference](https://developers.openai.com/api/reference/resources/moderations) on 2026-10-02. Tests use complete synthetic fixtures, not live provider responses.
+
+Only the latest submitted request may update results. Older successes and failures are ignored, and a successful request does not clear text edited while it was pending.
+
 ## Run locally
 
 Prerequisites: Node.js and npm. The repair was checked on Node 24.21.0 on Windows 11. A provider API key is needed only for live requests; deterministic tests use injected responses and do not contact OpenAI.
