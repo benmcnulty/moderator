@@ -16,7 +16,7 @@ function element() {
     addEventListener(type, handler) { this.handler = handler; },
   };
 }
-async function submit(fetchResponse) {
+function createHarness(fetchResponse) {
   const nodes = Object.fromEntries(["filterForm", "userText", "overallResultBody", "detailedResultBody"].map((id) => [id, element()]));
   nodes.overallResultBody.textContent = "Not flagged from a previous request";
   const source = fs.readFileSync(path.join(__dirname, "../src/index.js"), "utf8").replace(/^import .*;\r?\n/gm, "");
@@ -26,10 +26,65 @@ async function submit(fetchResponse) {
     fetch: async () => typeof fetchResponse === "function" ? fetchResponse() : fetchResponse,
     validateModerationResult,
   });
+  return nodes;
+}
+async function submit(fetchResponse) {
+  const nodes = createHarness(fetchResponse);
   await nodes.filterForm.handler({ preventDefault() {} });
   return nodes;
 }
+
+function deferred() {
+  let resolve;
+  let reject;
+  const promise = new Promise((ok, fail) => { resolve = ok; reject = fail; });
+  return { promise, resolve, reject };
+}
+const validResponse = { ok: true, json: async () => ({
+  flagged: false, categories: { violence: false }, category_scores: { violence: 0.1 },
+}) };
+const submitEvent = { preventDefault() {} };
 describe("moderation request and rendered status", () => {
+  it("does not let an older success overwrite a newer failure or clear its input", async () => {
+    const older = deferred();
+    let calls = 0;
+    const nodes = createHarness(() => ++calls === 1 ? older.promise : { ok: false });
+    nodes.userText.value = "Request A";
+    const requestA = nodes.filterForm.handler(submitEvent);
+    nodes.userText.value = "Request B";
+    await nodes.filterForm.handler(submitEvent);
+    older.resolve(validResponse);
+    await requestA;
+    assert.match(nodes.overallResultBody.textContent, /Moderation unavailable/);
+    assert.doesNotMatch(nodes.overallResultBody.textContent, /Not flagged/);
+    assert.equal(nodes.userText.value, "Request B");
+  });
+  it("does not let an older failure overwrite a newer success", async () => {
+    const older = deferred();
+    let calls = 0;
+    const nodes = createHarness(() => ++calls === 1 ? older.promise : validResponse);
+    nodes.userText.value = "Request A";
+    const requestA = nodes.filterForm.handler(submitEvent);
+    nodes.userText.value = "Request B";
+    await nodes.filterForm.handler(submitEvent);
+    nodes.userText.value = "Unsent request C";
+    older.reject(new Error("Old request failed"));
+    await requestA;
+    assert.match(nodes.overallResultBody.textContent, /Not flagged/);
+    assert.doesNotMatch(nodes.overallResultBody.textContent, /Moderation unavailable/);
+    assert.equal(nodes.userText.value, "Unsent request C");
+  });
+  it("preserves edits made while the current request is pending", async () => {
+    const response = deferred();
+    const nodes = createHarness(() => response.promise);
+    const request = nodes.filterForm.handler(submitEvent);
+    nodes.userText.value = "Unsent edits";
+    response.resolve(validResponse);
+    await request;
+    assert.equal(nodes.userText.value, "Unsent edits");
+    assert.match(nodes.overallResultBody.textContent, /Not flagged/);
+  });
+
   for (const flagged of [true, false]) {
     it(`renders validated ${flagged ? "flagged" : "unflagged"} results`, async () => {
       const nodes = await submit({ ok: true, json: async () => ({

@@ -5,10 +5,12 @@ const form = document.getElementById("filterForm");
 const userTextArea = document.getElementById("userText");
 const overallResultBody = document.getElementById("overallResultBody");
 const detailedResultBody = document.getElementById("detailedResultBody");
+let requestGeneration = 0;
 
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
   const text = userTextArea.value;
+  const generation = ++requestGeneration;
   overallResultBody.textContent = "";
   detailedResultBody.textContent = "";
 
@@ -26,6 +28,7 @@ form.addEventListener("submit", async (e) => {
       throw new Error("Moderation service unavailable");
     }
     const data = validateModerationResult(await response.json());
+    if (generation !== requestGeneration) return;
 
     // Calculate the average score across all categories
     let totalScore = 0;
@@ -95,8 +98,9 @@ form.addEventListener("submit", async (e) => {
     }
 
     // Reset the textarea for the next input
-    userTextArea.value = "";
+    if (userTextArea.value === text) userTextArea.value = "";
   } catch (error) {
+    if (generation !== requestGeneration) return;
     const row = document.createElement("tr");
     const cell = document.createElement("td");
     cell.colSpan = 3;
